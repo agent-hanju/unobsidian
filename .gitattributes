@@ -1,0 +1,27 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Python
+*.py text diff=python
+*.pyi text diff=python
+
+# Markdown
+*.md text diff=markdown
+
+# Data
+*.json text
+*.toml text
+*.yaml text
+*.yml text
+
+# Lock files (exact)
+uv.lock text -diff
+
+# Binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.whl binary
+*.tar.gz binary
