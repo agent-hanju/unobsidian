@@ -30,7 +30,10 @@ def expand_nested_tag(tag: str) -> list[str]:
 
 
 def extract_tags(content: str) -> list[str]:
-    """Extract tags from markdown content with nested tag expansion.
+    """Extract tags from markdown content.
+
+    Returns the original tags as written, without expansion.
+    Use expand_nested_tag() separately for nested tag hierarchy.
 
     Note: Content should have code blocks removed before calling this function.
 
@@ -40,10 +43,6 @@ def extract_tags(content: str) -> list[str]:
     - Forward slash enables nested tags like #parent/child
     - Must be preceded by whitespace or be at start of line
     - Purely numeric tags like #123 are not recognized
-
-    Nested tag expansion:
-    - #parent/child expands to both "parent" and "parent/child"
-    - #a/b/c expands to "a", "a/b", and "a/b/c"
 
     Args:
         content: Markdown content with code blocks already removed.
@@ -56,9 +55,8 @@ def extract_tags(content: str) -> list[str]:
 
     for match in TAG_PATTERN.finditer(content):
         tag = match.group(1)
-        for expanded in expand_nested_tag(tag):
-            if expanded not in seen:
-                seen.add(expanded)
-                result.append(expanded)
+        if tag not in seen:
+            seen.add(tag)
+            result.append(tag)
 
     return result

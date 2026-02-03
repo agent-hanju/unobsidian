@@ -17,17 +17,12 @@ class TestNode:
         assert node.label == "My Note"
         assert node.metadata == {}
 
-    def test_node_default_type(self):
-        """Test that node type defaults to 'file'."""
-        node = Node(id="MyNote", label="My Note")
+    def test_tag_node(self):
+        """Test creating a tag node."""
+        node = Node(id="#project", type="tag", label="project")
 
-        assert node.type == "file"
-
-    def test_node_with_tags_metadata(self):
-        """Test node with tags stored in metadata."""
-        node = Node(id="MyNote", label="My Note", metadata={"tags": ["project", "important"]})
-
-        assert node.metadata["tags"] == ["project", "important"]
+        assert node.id == "#project"
+        assert node.type == "tag"
 
     def test_node_with_metadata(self):
         """Test node with metadata."""
@@ -63,13 +58,19 @@ class TestLink:
 
         assert link.relation == "embed"
 
-    def test_only_wikilink_and_embed_relations(self):
-        """Test that only wikilink and embed relations are valid."""
-        link1 = Link(source="A", target="B", relation="wikilink")
-        assert link1.relation == "wikilink"
+    def test_tag_link(self):
+        """Test creating a tag link."""
+        link = Link(source="Note", target="#tag", relation="tag")
 
-        link2 = Link(source="A", target="img.png", relation="embed")
-        assert link2.relation == "embed"
+        assert link.relation == "tag"
+
+    def test_parent_link(self):
+        """Test creating a parent link for nested tag hierarchy."""
+        link = Link(source="#project", target="#project/frontend", relation="parent")
+
+        assert link.relation == "parent"
+        assert link.source == "#project"
+        assert link.target == "#project/frontend"
 
 
 class TestGraph:

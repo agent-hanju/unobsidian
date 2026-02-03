@@ -18,7 +18,7 @@ def get_structure(
         Field(description="List of file or directory paths to parse. Directories are searched recursively for .md files."),
     ],
 ) -> dict[str, Any]:
-    """Parse Obsidian-style markdown files and return a D3.js-compatible knowledge graph with nodes (files) and links (wikilinks, embeds)."""
+    """Parse Obsidian-style markdown files and return a D3.js-compatible knowledge graph with nodes (files, tags) and links (wikilinks, embeds, tags, parent)."""
     return build_graph_from_paths(paths).model_dump()
 
 
@@ -30,7 +30,7 @@ def query_neighbors_tool(
     ],
     node_id: Annotated[
         str,
-        Field(description="ID of the starting node (filename without .md extension)."),
+        Field(description="ID of the starting node (filename without .md, or #tagname)."),
     ],
     depth: Annotated[
         int,

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from markgraph_mcp.parser.engine import parse_markdown_file, ParseResult
+from markgraph_mcp.parser.tags import expand_nested_tag
 
 
 def collect_results_from_paths(paths: list[str]) -> list[ParseResult]:
@@ -43,9 +44,11 @@ def search_by_tag(paths: list[str], tag: str) -> list[dict[str, object]]:
     """Search for documents that contain a specific tag.
 
     Supports nested tag matching: searching for "project" will match documents
-    tagged with #project, #project/frontend, #project/backend, etc., because
-    nested tags are expanded during parsing (e.g., #project/frontend expands
-    to both "project" and "project/frontend").
+    tagged with #project/frontend, #project/backend, etc., because each
+    document's tags are expanded to include ancestor tags during search.
+
+    For example, a document with #project/frontend matches searches for
+    both "project" and "project/frontend".
 
     Args:
         paths: List of file or directory paths to search.
@@ -58,7 +61,12 @@ def search_by_tag(paths: list[str], tag: str) -> list[dict[str, object]]:
     matches: list[dict[str, object]] = []
 
     for result in results:
-        if tag in result.tags:
+        # Expand each original tag to include ancestors for matching
+        all_expanded: set[str] = set()
+        for t in result.tags:
+            all_expanded.update(expand_nested_tag(t))
+
+        if tag in all_expanded:
             matches.append({
                 "file_id": result.file_id,
                 "tags": result.tags,

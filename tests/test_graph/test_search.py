@@ -22,13 +22,13 @@ class TestSearchByTag:
         results = search_by_tag([str(sample_vault)], "project")
 
         file_ids = [r["file_id"] for r in results]
-        # ProjectA has #project and #project/frontend (which expands to include "project")
+        # ProjectA has #project and #project/frontend; search expands child tags
         assert "ProjectA" in file_ids
 
     def test_search_nested_tag_matches_parent(self, sample_vault: Path):
         """Test that searching parent tag finds files with nested child tags."""
-        # ProjectA has #project/frontend, which expands to ["project", "project/frontend"]
-        # So searching for "project" should find it
+        # ProjectA has #project/frontend; expand_nested_tag produces ["project", "project/frontend"]
+        # So searching for "project" matches via expansion
         results = search_by_tag([str(sample_vault)], "project")
 
         file_ids = [r["file_id"] for r in results]

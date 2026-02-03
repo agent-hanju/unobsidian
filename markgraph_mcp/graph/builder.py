@@ -4,6 +4,7 @@ from pathlib import Path
 
 from markgraph_mcp.graph.models import Graph, Node, Link
 from markgraph_mcp.parser.engine import parse_markdown_file, ParseResult
+from markgraph_mcp.parser.tags import expand_nested_tag
 
 
 def build_graph_from_results(results: list[ParseResult]) -> Graph:
@@ -17,6 +18,7 @@ def build_graph_from_results(results: list[ParseResult]) -> Graph:
     """
     nodes: dict[str, Node] = {}
     links: list[Link] = []
+    seen_parent_links: set[tuple[str, str]] = set()
 
     for result in results:
         # Create file node
@@ -63,9 +65,44 @@ def build_graph_from_results(results: list[ParseResult]) -> Graph:
                 relation="embed",
             ))
 
-        # Tags are stored in file node metadata for search, not as graph nodes.
-        if result.tags:
-            nodes[file_id].metadata["tags"] = result.tags
+        # Process tags: create tag nodes and file→tag links
+        for tag in result.tags:
+            tag_id = f"#{tag}"
+            if tag_id not in nodes:
+                nodes[tag_id] = Node(
+                    id=tag_id,
+                    type="tag",
+                    label=tag,
+                )
+            links.append(Link(
+                source=file_id,
+                target=tag_id,
+                relation="tag",
+            ))
+
+            # Create parent tag nodes and parent→child links for nested tags
+            ancestors = expand_nested_tag(tag)
+            for i in range(len(ancestors) - 1):
+                parent_tag = ancestors[i]
+                child_tag = ancestors[i + 1]
+                parent_id = f"#{parent_tag}"
+                child_id = f"#{child_tag}"
+
+                if parent_id not in nodes:
+                    nodes[parent_id] = Node(
+                        id=parent_id,
+                        type="tag",
+                        label=parent_tag,
+                    )
+
+                parent_link_key = (parent_id, child_id)
+                if parent_link_key not in seen_parent_links:
+                    seen_parent_links.add(parent_link_key)
+                    links.append(Link(
+                        source=parent_id,
+                        target=child_id,
+                        relation="parent",
+                    ))
 
     return Graph(
         nodes=list(nodes.values()),

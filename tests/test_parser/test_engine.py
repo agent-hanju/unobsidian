@@ -34,7 +34,7 @@ class TestParseMarkdownContent:
         assert "DailyNote" in result.wikilinks
         assert "project" in result.tags
         assert "important" in result.tags
-        # Nested tag #project/frontend expands to both "project" and "project/frontend"
+        # Nested tag #project/frontend is stored as original (no expansion in parser)
         assert "project/frontend" in result.tags
 
     def test_empty_content(self):
