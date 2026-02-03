@@ -2,7 +2,7 @@
 
 import pytest
 
-from markgraph_mcp.parser.tags import extract_tags
+from markgraph_mcp.parser.tags import extract_tags, expand_nested_tag
 
 
 class TestExtractTags:
@@ -23,11 +23,12 @@ class TestExtractTags:
         assert tags == ["tagA", "tagB", "tagC"]
 
     def test_nested_tag(self):
-        """Test parsing nested/hierarchical tags."""
+        """Test parsing nested/hierarchical tags with expansion."""
         content = "Has #project/frontend tag"
         tags = extract_tags(content)
 
-        assert tags == ["project/frontend"]
+        # Nested tags expand: #project/frontend -> ["project", "project/frontend"]
+        assert tags == ["project", "project/frontend"]
 
     def test_tag_with_numbers(self):
         """Test tags with numbers (not starting with number)."""
@@ -83,7 +84,8 @@ class TestExtractTags:
         content = "#project #프로젝트/프론트엔드 #日本語"
         tags = extract_tags(content)
 
-        assert tags == ["project", "프로젝트/프론트엔드", "日本語"]
+        # #프로젝트/프론트엔드 expands to 프로젝트 and 프로젝트/프론트엔드
+        assert tags == ["project", "프로젝트", "프로젝트/프론트엔드", "日本語"]
 
     def test_numeric_only_tag_ignored(self):
         """Test that purely numeric tags are ignored."""
@@ -96,3 +98,47 @@ class TestExtractTags:
         """Test with empty content."""
         tags = extract_tags("")
         assert tags == []
+
+    def test_deeply_nested_tag(self):
+        """Test deeply nested tag expansion."""
+        content = "#a/b/c/d"
+        tags = extract_tags(content)
+
+        assert tags == ["a", "a/b", "a/b/c", "a/b/c/d"]
+
+    def test_nested_tag_deduplication(self):
+        """Test that parent tags from expansion are deduplicated."""
+        content = "#project/frontend #project/backend"
+        tags = extract_tags(content)
+
+        # "project" appears from both expansions but is deduplicated
+        assert tags == ["project", "project/frontend", "project/backend"]
+
+    def test_nested_with_explicit_parent(self):
+        """Test nested tag when parent is also explicitly used."""
+        content = "#project #project/frontend"
+        tags = extract_tags(content)
+
+        # "project" from explicit tag, then "project/frontend" from nested
+        # "project" is already seen so not duplicated
+        assert tags == ["project", "project/frontend"]
+
+
+class TestExpandNestedTag:
+    """Tests for expand_nested_tag function."""
+
+    def test_simple_tag(self):
+        """Test that simple tag returns itself."""
+        assert expand_nested_tag("project") == ["project"]
+
+    def test_two_level(self):
+        """Test two-level nested tag."""
+        assert expand_nested_tag("project/frontend") == ["project", "project/frontend"]
+
+    def test_three_level(self):
+        """Test three-level nested tag."""
+        assert expand_nested_tag("a/b/c") == ["a", "a/b", "a/b/c"]
+
+    def test_four_level(self):
+        """Test four-level nested tag."""
+        assert expand_nested_tag("a/b/c/d") == ["a", "a/b", "a/b/c", "a/b/c/d"]

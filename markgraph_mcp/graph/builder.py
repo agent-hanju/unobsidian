@@ -63,20 +63,9 @@ def build_graph_from_results(results: list[ParseResult]) -> Graph:
                 relation="embed",
             ))
 
-        # Process tags
-        for tag in result.tags:
-            tag_id = f"#{tag}"
-            if tag_id not in nodes:
-                nodes[tag_id] = Node(
-                    id=tag_id,
-                    type="tag",
-                    label=tag,
-                )
-            links.append(Link(
-                source=file_id,
-                target=tag_id,
-                relation="tag",
-            ))
+        # Tags are stored in file node metadata for search, not as graph nodes.
+        if result.tags:
+            nodes[file_id].metadata["tags"] = result.tags
 
     return Graph(
         nodes=list(nodes.values()),

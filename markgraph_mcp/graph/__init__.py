@@ -11,6 +11,7 @@ from markgraph_mcp.graph.query import (
     get_node_by_id,
     get_links_for_node,
 )
+from markgraph_mcp.graph.search import search_by_tag
 
 __all__ = [
     "Graph",
@@ -22,4 +23,5 @@ __all__ = [
     "query_neighbors",
     "get_node_by_id",
     "get_links_for_node",
+    "search_by_tag",
 ]

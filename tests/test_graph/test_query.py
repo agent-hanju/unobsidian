@@ -8,20 +8,19 @@ from markgraph_mcp.graph.query import query_neighbors, get_node_by_id, get_links
 
 @pytest.fixture
 def sample_graph() -> Graph:
-    """Create a sample graph for testing."""
+    """Create a sample graph for testing (file nodes only, no tag nodes)."""
     nodes = [
         Node(id="A", type="file", label="Node A"),
         Node(id="B", type="file", label="Node B"),
         Node(id="C", type="file", label="Node C"),
         Node(id="D", type="file", label="Node D"),
-        Node(id="#tag1", type="tag", label="tag1"),
+        Node(id="E", type="file", label="Node E"),
     ]
     links = [
         Link(source="A", target="B", relation="wikilink"),
         Link(source="B", target="C", relation="wikilink"),
         Link(source="C", target="D", relation="wikilink"),
-        Link(source="A", target="#tag1", relation="tag"),
-        Link(source="B", target="#tag1", relation="tag"),
+        Link(source="A", target="E", relation="embed"),
     ]
     return Graph(nodes=nodes, links=links)
 
@@ -34,10 +33,10 @@ class TestQueryNeighbors:
         result = query_neighbors(sample_graph, "A", depth=1)
 
         node_ids = {n.id for n in result.nodes}
-        # A and its direct neighbors: B, #tag1
+        # A and its direct neighbors: B, E
         assert "A" in node_ids
         assert "B" in node_ids
-        assert "#tag1" in node_ids
+        assert "E" in node_ids
         assert "C" not in node_ids  # C is 2 hops away
 
     def test_depth_2(self, sample_graph: Graph):
@@ -45,11 +44,11 @@ class TestQueryNeighbors:
         result = query_neighbors(sample_graph, "A", depth=2)
 
         node_ids = {n.id for n in result.nodes}
-        # A, B, C, #tag1 (C is now included)
+        # A, B, E, C (C is now included via A->B->C)
         assert "A" in node_ids
         assert "B" in node_ids
         assert "C" in node_ids
-        assert "#tag1" in node_ids
+        assert "E" in node_ids
 
     def test_depth_clamped(self, sample_graph: Graph):
         """Test that depth is clamped to 1-3."""
@@ -102,12 +101,12 @@ class TestGetLinksForNode:
         """Test getting links for a node."""
         links = get_links_for_node(sample_graph, "A")
 
-        # A has 2 links: A->B and A->#tag1
+        # A has 2 links: A->B (wikilink) and A->E (embed)
         assert len(links) == 2
 
     def test_node_as_target(self, sample_graph: Graph):
         """Test getting links where node is target."""
         links = get_links_for_node(sample_graph, "B")
 
-        # B is source in B->C, B->#tag1 and target in A->B
-        assert len(links) == 3
+        # B is source in B->C and target in A->B
+        assert len(links) == 2

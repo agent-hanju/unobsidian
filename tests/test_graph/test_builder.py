@@ -29,15 +29,19 @@ class TestBuildGraphFromResults:
 
         graph = build_graph_from_results(results)
 
-        # Should have 3 nodes: NoteA, NoteB, #tag1
-        assert len(graph.nodes) == 3
+        # Should have 2 file nodes: NoteA, NoteB (tags are not graph nodes)
+        assert len(graph.nodes) == 2
 
         # Find nodes by id
         node_ids = {n.id for n in graph.nodes}
-        assert node_ids == {"NoteA", "NoteB", "#tag1"}
+        assert node_ids == {"NoteA", "NoteB"}
 
-        # Check links
-        assert len(graph.links) == 2  # wikilink + tag
+        # Tags stored in metadata
+        note_a = next(n for n in graph.nodes if n.id == "NoteA")
+        assert note_a.metadata["tags"] == ["tag1"]
+
+        # Check links (wikilink only, no tag links)
+        assert len(graph.links) == 1
 
     def test_multiple_files_with_connections(self):
         """Test building graph from multiple connected files."""
@@ -58,11 +62,11 @@ class TestBuildGraphFromResults:
 
         graph = build_graph_from_results(results)
 
-        # Should have 3 nodes: A, B, #shared
-        assert len(graph.nodes) == 3
+        # Should have 2 file nodes: A, B (no tag nodes)
+        assert len(graph.nodes) == 2
 
-        # Should have 4 links: A->B, B->A, A->#shared, B->#shared
-        assert len(graph.links) == 4
+        # Should have 2 links: A->B, B->A (no tag links)
+        assert len(graph.links) == 2
 
     def test_empty_results(self):
         """Test building graph from empty results."""
@@ -79,16 +83,17 @@ class TestBuildGraphFromDirectory:
         """Test building graph from sample vault."""
         graph = build_graph_from_directory(sample_vault)
 
-        # Should have file nodes
-        file_nodes = [n for n in graph.nodes if n.type == "file"]
-        assert len(file_nodes) >= 3  # DailyNote, ProjectA, ProjectB
+        # Should have file nodes only (no tag nodes)
+        assert all(n.type == "file" for n in graph.nodes)
+        assert len(graph.nodes) >= 3  # DailyNote, ProjectA, ProjectB
 
-        # Should have tag nodes
-        tag_nodes = [n for n in graph.nodes if n.type == "tag"]
-        assert len(tag_nodes) > 0
+        # Tags are stored in node metadata, not as separate nodes
+        nodes_with_tags = [n for n in graph.nodes if "tags" in n.metadata]
+        assert len(nodes_with_tags) > 0
 
-        # Should have links
+        # Should have links (wikilinks/embeds only)
         assert len(graph.links) > 0
+        assert all(link.relation in ("wikilink", "embed") for link in graph.links)
 
     def test_directory_not_found(self, tmp_path: Path):
         """Test error when directory doesn't exist."""

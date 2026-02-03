@@ -34,6 +34,8 @@ class TestParseMarkdownContent:
         assert "DailyNote" in result.wikilinks
         assert "project" in result.tags
         assert "important" in result.tags
+        # Nested tag #project/frontend expands to both "project" and "project/frontend"
+        assert "project/frontend" in result.tags
 
     def test_empty_content(self):
         """Test parsing empty content."""

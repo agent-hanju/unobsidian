@@ -8,10 +8,10 @@ from pydantic import BaseModel, Field
 class Node(BaseModel):
     """A node in the knowledge graph.
 
-    Represents either a markdown file or a tag.
+    Represents a markdown file.
     """
     id: str
-    type: Literal["file", "tag"]
+    type: Literal["file"] = "file"
     label: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -19,11 +19,11 @@ class Node(BaseModel):
 class Link(BaseModel):
     """A link (edge) between nodes.
 
-    Represents wikilinks, embeds, or tag relationships.
+    Represents wikilinks or embeds between files.
     """
     source: str
     target: str
-    relation: Literal["wikilink", "embed", "tag"]
+    relation: Literal["wikilink", "embed"]
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
