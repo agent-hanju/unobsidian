@@ -68,3 +68,4 @@ Renders the full vault graph as an interactive D3.js force-directed HTML file an
 - Node types: `file` (markdown file), `tag`
 - Link types: `wikilink`, `embed`, `tag`
 - Node ID is the filename without `.md` — must be unique within the vault
+- Backlinks (notes pointing to a given note): use get_neighbors — it traverses bidirectionally
