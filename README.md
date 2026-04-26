@@ -1,14 +1,18 @@
 # Unobsidian
 
-A Claude Code Skill that parses Obsidian-style markdown files and converts them into a knowledge graph.
+**A Claude Code Skill for exploring Obsidian vaults as a knowledge graph — no Obsidian required.**
+
+[![PyPI](https://img.shields.io/pypi/v/obsidian-parse?label=obsidian-parse)](https://pypi.org/project/obsidian-parse/)
+[![Python](https://img.shields.io/pypi/pyversions/obsidian-parse)](https://pypi.org/project/obsidian-parse/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Features
 
-- **Obsidian Independent**: Works without Obsidian installed or running
-- **D3.js Compatible**: Use `--format d3` for JSON output compatible with `d3.forceSimulation()`
-- **Neighbor Query**: BFS-based neighbor traversal with configurable depth
-- **Obsidian Syntax Support**: Wikilinks, tags, embeds, frontmatter
-
+- **Obsidian Independent** — Parses vaults directly from the filesystem, no Obsidian installation needed
+- **LLM-friendly output** — Compressed adjacency format keeps token usage low while staying human-readable
+- **D3.js Compatible** — Use `--format d3` for JSON output ready for `d3.forceSimulation()`
+- **BFS Neighbor Traversal** — Explore note connections up to configurable depth
+- **Full Obsidian Syntax** — Wikilinks, tags, embeds, frontmatter, nested tags, canvas files
 
 ## Installation
 
@@ -18,7 +22,7 @@ git clone https://github.com/agent-hanju/unobsidian.git
 cp -r unobsidian/skills/unobsidian/ .claude/skills/unobsidian/
 ```
 
-Claude Code will automatically recognize the SKILL.md and perform knowledge graph queries, neighbor traversal, tag search, etc. with a vault path.
+Claude Code automatically picks up the skill and can query your vault's knowledge graph, traverse neighbors, search by tag, and resolve file paths — just point it at a vault directory.
 
 For writing documents in Obsidian syntax, use the [obsidian-markdown](https://github.com/kepano/obsidian-skills) skill alongside.
 
@@ -41,7 +45,7 @@ Use `--format d3` for D3.js compatible JSON.
 
 ### get_neighbors
 
-Query neighbors of a specific node via BFS traversal.
+Explore the local neighborhood of any note or tag via BFS traversal.
 
 ```bash
 python get_neighbors.py --vault /path/to/vault --node MyNote --depth 2 [--format adjacency|d3]
@@ -51,15 +55,17 @@ Default output is compressed adjacency format. Use `--format d3` for D3.js compa
 
 ### search_by_tag
 
-Find documents containing a specific tag. (supports nested tags)
+Find all notes containing a specific tag, including nested tags.
 
 ```bash
 python search_by_tag.py --vault /path/to/vault --tag project
 ```
 
+Searching `#project` also matches `#project/frontend`, `#project/done`, etc.
+
 ### resolve_filepath
 
-Resolve a file ID to its absolute path within a vault.
+Resolve a note ID to its absolute path — disambiguates `.md` from `.canvas` files.
 
 ```bash
 python resolve_filepath.py --vault /path/to/vault --file-id ProjectA
@@ -67,31 +73,11 @@ python resolve_filepath.py --vault /path/to/vault --file-id ProjectA
 
 ### visualize_graph
 
-Generate an interactive D3.js force-directed graph and open it in a browser.
+Render the full vault as an interactive D3.js force-directed graph and open it in a browser.
 
 ```bash
 python visualize_graph.py --vault /path/to/vault [--output graph.html] [--no-open]
 ```
-
-## Data Model
-
-### Node
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Filename or #tag name |
-| `type` | "file" \| "tag" | Node type |
-| `label` | string? | Display label |
-| `metadata` | object | Frontmatter data |
-
-### Link
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `source` | string | Source node ID |
-| `target` | string | Target node ID |
-| `relation` | "wikilink" \| "embed" \| "tag" | Relation type |
-| `metadata` | object | Additional metadata |
 
 ## Parsing Rules
 
