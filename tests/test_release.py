@@ -19,7 +19,7 @@ class ReleaseTests(unittest.TestCase):
 
     def setUp(self):
         """상호 참조·임베드·태그·Canvas가 있는 보관함을 준비한다."""
-        self.temp = tempfile.TemporaryDirectory(prefix="unobsidian ")
+        self.temp = tempfile.TemporaryDirectory(prefix="unobsidian ", dir=Path.cwd())
         self.addCleanup(self.temp.cleanup)
         self.vault = Path(self.temp.name) / "vault & notes"
         self.vault.mkdir()
