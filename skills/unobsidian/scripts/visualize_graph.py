@@ -9,8 +9,8 @@ connection count. Click a node to highlight its neighbors; click empty space to 
 """
 
 import argparse
+import html
 import json
-import subprocess
 import sys
 import webbrowser
 from pathlib import Path
@@ -151,14 +151,15 @@ sim.on("tick", () => {{
 
 
 def main() -> None:
+    """그래프 HTML을 생성하고 자동 열기가 활성화된 경우 브라우저로 연다."""
     parser = argparse.ArgumentParser(description="Visualize vault knowledge graph")
     parser.add_argument("--vault", required=True, help="Path to vault directory")
     parser.add_argument("--output", default=None, help="Output HTML file path (default: <vault>/graph.html)")
     parser.add_argument("--no-open", action="store_true", help="Do not open browser automatically")
     args = parser.parse_args()
 
-    vault_root = Path(args.vault)
-    output_path = Path(args.output) if args.output else vault_root / "graph.html"
+    vault_root = Path(args.vault).resolve()
+    output_path = Path(args.output).resolve() if args.output else vault_root / "graph.html"
 
     try:
         if not vault_root.exists():
@@ -170,16 +171,17 @@ def main() -> None:
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        title = vault_root.name
-        graph_data = json.dumps(graph, ensure_ascii=False)
-        html = HTML_TEMPLATE.format(
+        title = html.escape(vault_root.name)
+        # JSON 문자열의 종료 태그가 script 요소를 종료하지 못하게 한다.
+        graph_data = json.dumps(graph, ensure_ascii=False).replace("<", "\\u003c")
+        document = HTML_TEMPLATE.format(
             title=title,
             node_count=len(graph["nodes"]),
             link_count=len(graph["links"]),
             graph_data=graph_data,
         )
 
-        output_path.write_text(html, encoding="utf-8")
+        output_path.write_text(document, encoding="utf-8")
         print(json.dumps({"output": str(output_path)}, ensure_ascii=False))
 
         if not args.no_open:

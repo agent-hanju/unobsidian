@@ -16,13 +16,14 @@ from obsidian_parse.utils.vault import find_file_by_id
 
 
 def main() -> None:
+    """파일 ID를 조회하고 보관함 내 파일의 절대경로를 JSON으로 출력한다."""
     parser = argparse.ArgumentParser(description="Resolve file ID to path")
     parser.add_argument("--vault", required=True, help="Path to vault directory")
     parser.add_argument("--file-id", required=True, help="Filename without .md extension")
     args = parser.parse_args()
 
     try:
-        vault_root = Path(args.vault)
+        vault_root = Path(args.vault).resolve()
         rel = find_file_by_id(vault_root, args.file_id)
         if rel is None:
             print(json.dumps({"error": f"File '{args.file_id}' not found"}), file=sys.stderr)

@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-"""Build a knowledge graph from a vault directory.
+"""보관함의 연결 그래프를 인접 목록 텍스트 또는 D3 JSON으로 출력한다.
 
-Usage:
-    python get_graph.py --vault /path/to/vault [--format adjacency|d3]
-
-Default output (adjacency):
-    { "files": {"NoteA": ["NoteB", ...]}, "tags": {"#tag": ["#tag/child", ...]} }
-
-D3 output (--format d3):
-    { "nodes": [{"id", "type", "label"}], "links": [{"source", "target", "relation"}] }
-
-Ignore rules from .obsidian/app.json are respected automatically.
+기본 출력은 한 줄에 한 노드를 표시하며 태그 ID에는 # 접두사가 있다.
+--format d3의 노드는 id와 type, 링크는 source·target·relation을 포함한다.
+.obsidian/app.json의 제외 규칙은 파서에서 적용한다.
 """
 
 import argparse

@@ -19,18 +19,23 @@ from obsidian_parse.utils.tags import expand_nested_tag
 
 
 def main() -> None:
+    """샵 접두사가 선택적인 태그로 해당 태그와 하위 태그의 노트를 조회한다."""
     parser = argparse.ArgumentParser(description="Search vault documents by tag")
     parser.add_argument("--vault", required=True, help="Path to vault directory")
-    parser.add_argument("--tag", required=True, help="Tag to search for (without # prefix)")
+    parser.add_argument("--tag", required=True, help="Tag to search for (optional # prefix)")
     args = parser.parse_args()
 
     try:
+        tag = args.tag.removeprefix("#")
+        if not tag:
+            raise ValueError("Tag must not be empty")
         raw = parse([args.vault])
-        results = [
-            {"file_id": r.file_id, "tags": r.tag_names}
-            for r in raw
-            if args.tag in {t for name in r.tag_names for t in expand_nested_tag(name)}
-        ]
+        results = []
+        for result in raw:
+            for name in result.tag_names:
+                if tag in expand_nested_tag(name):
+                    results.append({"file_id": result.file_id, "tags": result.tag_names})
+                    break
         print(json.dumps({"results": results, "count": len(results)}, ensure_ascii=False, indent=2))
 
     except Exception as e:
